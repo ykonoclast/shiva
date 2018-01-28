@@ -17,12 +17,13 @@
 
 #include "processutils.h"
 
-void workfunc(int p_c2p, int id, int nbchld, int mincol, int maxcol)
+void workfunc(int p_c2p, int id, int nbchld, int mincol, int maxcol, int step)
 {
     //TODO commentaire de création si verbose
-    int offset = id + mincol;
+    int offset = (id * step) + mincol;
     while(offset <= maxcol)//on parcours les ND affectés à ce worker
     {
+	printf("fils n°%d ND=%d", id, offset);
 	for(int trait = 1; trait <= 7; ++trait)//pour chaque rang de trait de 1 à 7
 	{
 	    for(int domaine = 1; domaine <= 7; ++domaine)//pour chaque rang de domaine de 1 à 7
@@ -34,16 +35,10 @@ void workfunc(int p_c2p, int id, int nbchld, int mincol, int maxcol)
 		    char str[50];
 		    sprintf(str, "fils n°%d ND=%d trait=%d domaine=%d comp=%d\n", id, offset, trait, domaine, comp);
 		    write(p_c2p, str, sizeof(str));
-#ifdef DEBUG
-		    printf("DANS FILS:%s\n", str);
-#endif
 		}
 	    }
 	}
-
-
-
-	offset += nbchld;
+	offset += (nbchld * step);
     }
     close(p_c2p);
 }

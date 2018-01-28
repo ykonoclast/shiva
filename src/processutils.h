@@ -24,7 +24,7 @@
 
 #include "uprollutils.h"
 
-void workfunc(int p_c2p, int id, int nbchild, int mincol, int maxcol);
+void workfunc(int p_c2p, int id, int nbchild, int mincol, int maxcol, int step);
 
 #endif /* PROCESSUTILS_H */
 

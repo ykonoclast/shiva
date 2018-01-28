@@ -25,14 +25,13 @@
 #include <sys/wait.h>
 #include <fcntl.h>
 #include <stdbool.h>
+#include <argp.h>
 
 #include "processutils.h"
 #include "uprollutils.h"
 
-#define NBCHILDREN 8
-#define T_SORT wqsort
-
-int commtab[NBCHILDREN];
+const char *argp_program_bug_address = "ykonoclast@protonmail.com";
+const char *argp_program_version = "version 1.0";
 
 #endif /* SHIVA_H */
 

@@ -48,11 +48,12 @@
             <pElem>debug.h</pElem>
           </incFile>
           <commandLine>-Wall -Wextra -Wpedantic</commandLine>
-          <warningLevel>3</warningLevel>
+          <warningLevel>2</warningLevel>
         </cTool>
         <linkerTool>
           <linkerLibItems>
             <linkerOptionItem>`pkg-config --libs libbsd`</linkerOptionItem>
+            <linkerLibFileItem>lib/libargparse.a</linkerLibFileItem>
           </linkerLibItems>
         </linkerTool>
       </compileType>
@@ -83,7 +84,7 @@
           <architecture>2</architecture>
           <standard>10</standard>
           <commandLine>-Wall -Wextra -Wpedantic</commandLine>
-          <warningLevel>3</warningLevel>
+          <warningLevel>2</warningLevel>
         </cTool>
         <ccTool>
           <developmentMode>5</developmentMode>
@@ -98,12 +99,25 @@
           <linkerDepDynSerchKind>0</linkerDepDynSerchKind>
           <linkerLibItems>
             <linkerOptionItem>`pkg-config --libs libbsd`</linkerOptionItem>
+            <linkerLibFileItem>lib/libargparse.a</linkerLibFileItem>
           </linkerLibItems>
         </linkerTool>
       </compileType>
       <packaging>
         <packType>RPM</packType>
         <packFileList>
+          <packFileListElem type="File"
+                            to="${PACKAGE_TOP_DIR}bin/${OUTPUT_BASENAME}"
+                            from="${OUTPUT_PATH}"
+                            perm="755"
+                            owner="root"
+                            group="bin"/>
+          <packFileListElem type="File"
+                            to="${PACKAGE_TOP_DIR}bin/${OUTPUT_BASENAME}"
+                            from="${OUTPUT_PATH}"
+                            perm="755"
+                            owner="root"
+                            group="bin"/>
           <packFileListElem type="File"
                             to="${PACKAGE_TOP_DIR}bin/${OUTPUT_BASENAME}"
                             from="${OUTPUT_PATH}"

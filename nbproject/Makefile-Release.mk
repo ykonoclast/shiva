@@ -54,11 +54,13 @@ FFLAGS=
 ASFLAGS=
 
 # Link Libraries and Options
-LDLIBSOPTIONS=`pkg-config --libs libbsd`  
+LDLIBSOPTIONS=`pkg-config --libs libbsd` lib/libargparse.a  
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}
 	"${MAKE}"  -f nbproject/Makefile-${CND_CONF}.mk ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/shiva
+
+${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/shiva: lib/libargparse.a
 
 ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/shiva: ${OBJECTFILES}
 	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
@@ -67,17 +69,17 @@ ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/shiva: ${OBJECTFILES}
 ${OBJECTDIR}/src/processutils.o: src/processutils.c
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
-	$(COMPILE.c) -O3 -Werror `pkg-config --cflags libbsd` -std=c11  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/processutils.o src/processutils.c
+	$(COMPILE.c) -O3 -Wall `pkg-config --cflags libbsd` -std=c11  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/processutils.o src/processutils.c
 
 ${OBJECTDIR}/src/shiva.o: src/shiva.c
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
-	$(COMPILE.c) -O3 -Werror `pkg-config --cflags libbsd` -std=c11  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/shiva.o src/shiva.c
+	$(COMPILE.c) -O3 -Wall `pkg-config --cflags libbsd` -std=c11  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/shiva.o src/shiva.c
 
 ${OBJECTDIR}/src/uprollutils.o: src/uprollutils.c
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
-	$(COMPILE.c) -O3 -Werror `pkg-config --cflags libbsd` -std=c11  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/uprollutils.o src/uprollutils.c
+	$(COMPILE.c) -O3 -Wall `pkg-config --cflags libbsd` -std=c11  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/uprollutils.o src/uprollutils.c
 
 # Subprojects
 .build-subprojects:
