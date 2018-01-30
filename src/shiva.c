@@ -53,7 +53,7 @@ static int parse_opt(int key, char *arg, struct argp_state *state)
     return 0;
 }
 
-int main(int argc, char **argv)
+int main(int argc, char **argv)//et le nombre de lancers?
 {
     //lecture des paramétres
     struct argp_option options[] = {
@@ -73,24 +73,7 @@ int main(int argc, char **argv)
 
     argp_parse(&argp, argc, argv, 0, 0, 0);
 
-    if(abso)
-    {
-	printf("valeur absolue\n");
-    }
-    if(verb)
-    {
-	printf("verbose\n");
-    }
-    if(ronly)
-    {
-	printf("résultat\n");
-    }
-
-    printf("nb workers=%d\n", nbworkers);
-    printf("nd min=%d\n", ndmin);
-    printf("nd max=%d\n", ndmax);
-    printf("step=%d\n", step);
-    printf("%s\n", ofile);
+    //TODO implémenter les options verbose, aboslute et result-only
 
 
 
@@ -133,15 +116,18 @@ int main(int argc, char **argv)
 
     //suite du code du père
     //communication avec les fils et remplissage du tableau de résultats
+    int nbcol = ((ndmax - ndmin - (ndmax - ndmin) % step) / step) + 1;
+    int (*tabresult)[nbcol] = malloc(sizeof(int[NBLINES][nbcol]));
+
     bool* opnd_strm = malloc(nbworkers * sizeof(opnd_strm)); //tableau des pipes ouverts
     for(int i = 0; i < nbworkers; ++i)
     {
 	opnd_strm[i] = true; //TODO vérifier si on ne peut pas optimiser ça
     }
-    int itern[nbworkers];
+    int lnumber[nbworkers];
     for(int i = 0; i < nbworkers; ++i)
     {
-	itern[i] = 0;
+	lnumber[i] = 0;
     }
     bool over = false;
     while(!over)
@@ -156,9 +142,7 @@ int main(int argc, char **argv)
 		char buf[50];
 		int idchld;
 		int ND;
-		int trait;
-		int domaine;
-		int comp;
+		int result;
 		switch(read(commtab[i], &buf, sizeof(buf)))
 		{
 		    case -1://pipe vide
@@ -179,19 +163,69 @@ int main(int argc, char **argv)
 			break;
 
 		    default://on lit le message
-			sscanf(buf, "fils n°%d ND=%d trait=%d domaine=%d comp=%d", &idchld, &ND, &trait, &domaine, &comp);
+			sscanf(buf, "fils n°%d ND=%d result=%d\n", &idchld, &ND, &result);
 			over = false;
-			itern[i] = itern[i] + 1;
-#ifdef DEBUG
-			//printf("Message du fils n°%d(%d) sur itération n°%d: ND:%d, trait:%d, domaine:%d, comp:%d\n", i, idchld, itern[i], ND, trait, domaine, comp);
-#endif
+			int curcol = (ND - ndmin) / step;
+			tabresult[lnumber[i]][curcol] = result;
+			printf("fils n°%d result=%d inscrit=%d lnumber=%d curcol=%d\n", idchld, result, tabresult[lnumber[i]][curcol], lnumber[i], curcol);
+			if(lnumber[i] < (NBLINES - 1))
+			{
+			    lnumber[i] = lnumber[i] + 1;
+			}
+			else
+			{
+			    lnumber[i] = 0;
+			}
 		}
+	    }
+	}
+    }
+
+
+
+    //écriture du résultat
+    FILE * fp;
+    fp = fopen(ofile, "w");
+    fprintf(fp, "X");
+    for(int c = 1; c <= nbcol; ++c)
+    {
+	fprintf(fp, ",ND%d", ndmin + ((c - 1) * step));
+    }
+    fprintf(fp, "\n");
+
+    int t = 1;
+    int d = 1;
+    int c = 0;
+    for(int l = 0; l < NBLINES; ++l)
+    {
+	fprintf(fp, "t%d d%d c%d", t, d, c);
+	for(int c = 0; c < nbcol; ++c)
+	{
+	    fprintf(fp, ",%d", tabresult[l][c]);
+	}
+	fprintf(fp, "\n");
+	if(c < d)
+	{
+	    ++c;
+	}
+	else
+	{
+	    c = 0;
+	    if(d < 7)
+	    {
+		++d;
+	    }
+	    else
+	    {
+		d = 1;
+		++t;
 	    }
 	}
     }
 
     free(opnd_strm);
     free(commtab);
+    free(tabresult);
 
     //récupération des fils morts
     pid_t wpid;

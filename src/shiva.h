@@ -30,6 +30,8 @@
 #include "processutils.h"
 #include "uprollutils.h"
 
+#define NBLINES 245
+
 const char *argp_program_bug_address = "ykonoclast@protonmail.com";
 const char *argp_program_version = "version 1.0";
 

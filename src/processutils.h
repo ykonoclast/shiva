@@ -20,6 +20,7 @@
 
 #include <stdio.h>
 #include <unistd.h>
+#include <stdbool.h>
 #include <stdlib.h>
 
 #include "uprollutils.h"

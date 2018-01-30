@@ -30,10 +30,19 @@ void workfunc(int p_c2p, int id, int nbchld, int mincol, int maxcol, int step)
 	    {
 		for(int comp = 0; comp <= domaine; ++comp)//pour chaque rang de compétence de 0 jusqu'au rang de domaine gouvernant
 		{
-		    //int result = offset + comp + domaine + trait/*lancer((int) (arc4random_uniform(10) + 1), (int) (arc4random_uniform(5) + 1), (int) arc4random_uniform(2))*/;
+
+		    int result = 0;
+		    for(int i = 0; i < 1000000; ++i)
+		    {
+			result += lancer(domaine + comp, trait, false);
+
+		    }
+		    result = result / 100;
+
+
 		    //write(p_c2p, &result, sizeof(result));
 		    char str[50];
-		    sprintf(str, "fils n°%d ND=%d trait=%d domaine=%d comp=%d\n", id, offset, trait, domaine, comp);
+		    sprintf(str, "fils n°%d ND=%d result=%d\n", id, offset, result);
 		    write(p_c2p, str, sizeof(str));
 		}
 	    }

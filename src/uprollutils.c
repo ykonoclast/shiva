@@ -57,9 +57,6 @@ int lt_comp(const void* a, const void* b)
 
 int wqsort(int p_nbdl, int p_nbdg, bool p_nexpl)
 {
-#ifdef DEBUG
-    printf("wqsort here!");
-#endif
     int total = 0;
     int* tabl = calloc(p_nbdl, sizeof(tabl));
 
@@ -78,9 +75,6 @@ int wqsort(int p_nbdl, int p_nbdg, bool p_nexpl)
 
 int wnosort(int p_nbdl, int p_nbdg, bool p_nexpl)
 {
-#ifdef DEBUG
-    printf("nosort here!");
-#endif
     int total = 0;
     int* tabg = calloc(p_nbdg, sizeof(tabg));
 
