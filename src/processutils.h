@@ -23,11 +23,10 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <fcntl.h>
-#include <time.h>
 
 #include "uprollutils.h"
 
-void workfunc(int p_c2p, int id, int nbchild, int mincol, int maxcol, int step);
+void workfunc(int p_c2p, int p_id, int p_nbchild, int p_mincol, int p_maxcol, int p_step, int p_nbroll, bool p_verb, bool p_abso, bool p_ronly);
 
 #endif /* PROCESSUTILS_H */
 

@@ -26,6 +26,7 @@
 #include <fcntl.h>
 #include <stdbool.h>
 #include <argp.h>
+#include <time.h>
 
 #include "processutils.h"
 #include "uprollutils.h"

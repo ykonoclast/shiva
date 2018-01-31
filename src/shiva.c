@@ -26,7 +26,7 @@ static int nbworkers = 4;
 static int ndmin = 5;
 static int ndmax = 55;
 static int step = 5;
-static int nbdiceroll = 10000;
+static int nbdiceroll = 100000;
 static char* ofile = "shivresult.csv";
 
 static int parse_opt(int key, char *arg, struct argp_state *state)
@@ -42,15 +42,15 @@ static int parse_opt(int key, char *arg, struct argp_state *state)
 	case 'q': engine = &wqsort;
 	    break;
 	case 'd': nbdiceroll = atoi(arg);
-	    break; //TODO tester validité
+	    break;
 	case 'w': nbworkers = atoi(arg);
-	    break; //TODO tester validité
+	    break;
 	case 'm': ndmin = atoi(arg);
-	    break; //TODO tester validité
+	    break;
 	case 'M': ndmax = atoi(arg);
-	    break; //TODO tester validité
+	    break;
 	case 's': step = atoi(arg);
-	    break; //TODO tester validité
+	    break;
 	case 'o': ofile = arg;
 	    break;
     }
@@ -66,23 +66,41 @@ int main(int argc, char **argv)
 	{ "qsort", 'q', 0, 0, "utiliser l'algorithme qsort (généralement plus lent)"},
 	{ "verbose", 'v', 0, 0, "afficher des informations d'avancement du traitement"},
 	{ "result-only", 'r', 0, 0, "créée un tableau de résultats moyens plutôt que de chances de réussite"},
-	{ "workers", 'w', "NUM", 0, "nombre de workers à créer(par défaut: 4)"},
-	{ "dicerolls", 'd', "NUM", 0, "nombre de jets par éléments statistique (par défaut: 10 000)"},
-	{ "ndmin", 'm', "NUM", 0, "ND minimum (par défaut: 5)"},
-	{ "ndmax", 'M', "NUM", 0, "ND maximum (par défaut: 55)"},
-	{ "step", 's', "NUM", 0, "écart entre chaque ND calculé, le ND max est ignoré si il est dépassé (par défaut: 5)"},
+	{ "workers", 'w', "NUM", 0, "nombre de workers à créer(par défaut: 4, ignoré avec result-only)"},
+	{ "dicerolls", 'd', "NUM", 0, "nombre de jets par élément statistique (par défaut: 100 000)"},
+	{ "ndmin", 'm', "NUM", 0, "ND minimum (par défaut: 5, ignoré avec result-only)"},
+	{ "ndmax", 'M', "NUM", 0, "ND maximum (par défaut: 55, ignoré avec result-only)"},
+	{ "step", 's', "NUM", 0, "écart entre chaque ND calculé, le ND max est ignoré si il est dépassé (par défaut: 5, ignoré avec result-only)"},
 	{ "output", 'o', "STR", 0, "nom du fichier de sortie (par défaut: \"shivresult.csv\")"},
 	{ 0}
     };
     struct argp argp = {options, parse_opt};
     argp_parse(&argp, argc, argv, 0, 0, 0);
-    //TODO seulement si verbose
 
-    //TODO implémenter les options verbose, aboslute et result-only
-    printf("__[main]__démarrage: NDmin=%d, NDmax=%d, step=%d, fichier de sortie=%s, nb workers=%d, nb jets par test=%d, %s, %s, %s\n", ndmin, ndmax, step, ofile, nbworkers, nbdiceroll, abso ? "jets absolus" : "jets de compétence", ronly ? "résultats moyens" : "chances de réussite", (engine == &wqsort) ? "qsort" : "nosort");
+    if(nbdiceroll < 1 || nbworkers < 1 || ndmin < 1 || ndmax < 1 || step < 1)
+    {
+	fprintf(stderr, "valeur de paramétre inférieure à 1");
+	return(1);
+    }
+
+    if(ronly)
+    {
+	nbworkers = 1;
+	ndmax = 1;
+	ndmin = 1;
+	step = 1;
+    }
+    if(verb)
+    {
+	printf("[main]__démarrage: NDmin=%d, NDmax=%d, step=%d, fichier de sortie=%s, nb workers=%d, nb jets par test=%d, %s, %s, %s\n", ndmin, ndmax, step, ofile, nbworkers, nbdiceroll, abso ? "jets absolus" : "jets de compétence", ronly ? "résultats moyens" : "chances de réussite", (engine == &wqsort) ? "qsort" : "nosort");
+    }
 
     //création des processus workers
-    printf("__[main]__création des workers\n"); //TODO seulement si verbose
+    if(verb)
+    {
+	printf("[main]__création des workers\n");
+    }
+
     int* restrict commtab = malloc(nbworkers * sizeof(commtab));
     for(int i = 0; i < nbworkers; ++i)
     {
@@ -91,12 +109,12 @@ int main(int argc, char **argv)
 	if(pipe(commelt) < 0)
 	{
 	    fprintf(stderr, "échec d'un pipe");
-	    return(1);
+	    return(2);
 	}
 	if(fcntl(commelt[0], F_SETFL, O_NONBLOCK) < 0)
 	{
 	    fprintf(stderr, "échec d'un fcntl");
-	    return(2);
+	    return(3);
 	}
 
 	//création d'un worker
@@ -104,12 +122,12 @@ int main(int argc, char **argv)
 	{
 	    case 0://fils
 		close(commelt[0]); //on ferme la lecture du pipe
-		workfunc(commelt[1], i, nbworkers, ndmin, ndmax, step);
+		workfunc(commelt[1], i, nbworkers, ndmin, ndmax, step, nbdiceroll, verb, abso, ronly);
 		return(EXIT_SUCCESS); //afin de ne pas exécuter le code du père en revenant de workfunc
 
 	    case -1://fork error
 		fprintf(stderr, "échec d'un fork");
-		return(3);
+		return(4);
 
 	    default://père
 		close(commelt[1]); //on ferme l'écriture du pipe
@@ -178,16 +196,27 @@ int main(int argc, char **argv)
     }
 
     //écriture du résultat
-    printf("__[main]__calculs terminés, écriture du fichier de résultats\n"); //TODO seulement si verbose
+    if(verb)
+    {
+	printf("[main]__calculs terminés, écriture du fichier de résultats\n");
+    }
     FILE * restrict fp;
     fp = fopen(ofile, "w");
     //Ligne d'en-tête
     fprintf(fp, "X");
-    for(int c = 1; c <= nbcol; ++c)
+
+    if(ronly)
     {
-	fprintf(fp, ",ND%d", ndmin + ((c - 1) * step));
+	fprintf(fp, ",Résultat moyen\n");
     }
-    fprintf(fp, "\n");
+    else
+    {
+	for(int c = 1; c <= nbcol; ++c)
+	{
+	    fprintf(fp, ",ND%d", ndmin + ((c - 1) * step));
+	}
+	fprintf(fp, "\n");
+    }
     //lignes de résultat avec en-têtes de lignes indiquant les valeurs de caracs
     int t = 1;
     int d = 1;
@@ -198,6 +227,10 @@ int main(int argc, char **argv)
 	for(int c = 0; c < nbcol; ++c)
 	{
 	    fprintf(fp, ",%d", tabresult[l][c]);
+	    if(!ronly)
+	    {
+		fprintf(fp, "%%");
+	    }
 	}
 	fprintf(fp, "\n");
 	if(c < d)
@@ -226,18 +259,26 @@ int main(int argc, char **argv)
     free(lnumber);
 
     //récupération des fils morts
-    printf("__[main]__récupération des workers\n"); //TODO seulement si verbose
+    if(verb)
+    {
+	printf("[main]__récupération des workers\n");
+    }
     pid_t wpid;
     int status;
     while((wpid = wait(&status)) > 0)
-    {//TODO si verbose
-	printf("__[main]__worker PID%d terminé sur statut %d (%s)\n", (int) wpid, status, (status == 0) ? "nominal" : "erreur");
+    {
+	if(verb)
+	{
+	    printf("[main]__worker PID%d terminé sur statut %d (%s)\n", (int) wpid, status, (status == 0) ? "nominal" : "erreur");
+	}
     }
     diff = clock() - start;
     int msec = diff * 1000 / CLOCKS_PER_SEC;
     int sec = msec / 1000;
-    float min = ((float) sec) / 60.0;
-    printf("__[main]__temps total d'exécution:%fmin\n", min); //TODO seulement si verbose
+    if(verb)
+    {
+	printf("[main]__temps total d'exécution:%ds\n", sec);
+    }
 
     return(EXIT_SUCCESS);
 }

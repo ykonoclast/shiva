@@ -17,43 +17,65 @@
 
 #include "processutils.h"
 
-void workfunc(int p_c2p, int id, int nbchld, int mincol, int maxcol, int step)
+void workfunc(int p_c2p, int p_id, int p_nbchld, int p_mincol, int p_maxcol, int p_step, int p_nbroll, bool p_verb, bool p_abso, bool p_ronly)
 {
-    //TODO commentaire de création si verbose
+    if(p_verb)
+    {
+	printf("    ==worker%d==>activé PID=%d\n", p_id, getpid());
+    }
     if(fcntl(p_c2p, F_SETFL, O_NONBLOCK) < 0)
     {
 	fprintf(stderr, "échec d'un fcntl");
 	return(2);
     }
 
-    srand(time(NULL)*(id + 1));
-
-    int offset = (id * step) + mincol;
-    while(offset <= maxcol)//on parcours les ND affectés à ce worker
+    int offset = (p_id * p_step) + p_mincol;
+    while(offset <= p_maxcol)//on parcours les ND affectés à ce worker
     {
-	printf("    ==worker%d==>calculs pour ND=%d\n", id, offset); //TODO seulement si verbose
+	if(p_verb)
+	{
+	    printf("    ==worker%d==>calculs pour ND=%d\n", p_id, offset);
+	}
 	for(int trait = 1; trait <= 7; ++trait)//pour chaque rang de trait de 1 à 7
 	{
 	    for(int domaine = 1; domaine <= 7; ++domaine)//pour chaque rang de domaine de 1 à 7
 	    {
-
 		for(int comp = 0; comp <= domaine; ++comp)//pour chaque rang de compétence de 0 jusqu'au rang de domaine gouvernant
 		{
 		    int result = 0;
-		    for(int i = 0; i < 1000000; ++i)//TODO valeur de nbdicerolls
+		    int reussis = 0;
+		    int somme = 0;
+		    for(int i = 0; i < p_nbroll; ++i)
 		    {
-			result += lancer(domaine + comp, trait, false);
-
+			int roll = lancer(domaine + comp, trait, false);
+			if(!p_abso)
+			{
+			    if(comp >= 3)
+			    {
+				roll += 5;
+			    }
+			}
+			somme += roll;
+			if(roll >= offset)
+			{
+			    ++reussis;
+			}
 		    }
-		    result = result / 1000000; //TODO valeur de nbdicerolls
-
+		    if(!p_ronly)
+		    {
+			result = (reussis * 100) / p_nbroll;
+		    }
+		    else
+		    {
+			result = somme / p_nbroll;
+		    }
 		    char str[50];
-		    sprintf(str, "fils n°%d ND=%d result=%d\n", id, offset, result);
+		    sprintf(str, "fils n°%d ND=%d result=%d\n", p_id, offset, result);
 		    write(p_c2p, str, sizeof(str));
 		}
 	    }
 	}
-	offset += (nbchld * step);
+	offset += (p_nbchld * p_step);
     }
     close(p_c2p);
 }

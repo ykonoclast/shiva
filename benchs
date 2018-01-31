@@ -1,4 +1,0 @@
-20.629min qsort 8w
-2.8min : qsort srand 8w
-1.8min nosort srand 8w
-1.76min : nosort inline srand 8w
