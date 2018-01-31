@@ -22,6 +22,8 @@
 #include <unistd.h>
 #include <stdbool.h>
 #include <stdlib.h>
+#include <fcntl.h>
+#include <time.h>
 
 #include "uprollutils.h"
 

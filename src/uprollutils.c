@@ -42,7 +42,6 @@ int lancer(int p_nbdl, int p_nbdg, bool p_nexpl)
 int dieroll(bool p_nexpl)
 {
     int result = ((int) (arc4random_uniform(10) + 1));
-
     while(!p_nexpl && result == 10)
     {//gestion de l'explosion
 	result += ((int) (arc4random_uniform(10) + 1));
@@ -58,7 +57,7 @@ int lt_comp(const void* a, const void* b)
 int wqsort(int p_nbdl, int p_nbdg, bool p_nexpl)
 {
     int total = 0;
-    int* tabl = calloc(p_nbdl, sizeof(tabl));
+    int* restrict tabl = calloc(p_nbdl, sizeof(tabl));
 
     for(int i = 0; i < (p_nbdl); ++i)
     {
@@ -76,7 +75,7 @@ int wqsort(int p_nbdl, int p_nbdg, bool p_nexpl)
 int wnosort(int p_nbdl, int p_nbdg, bool p_nexpl)
 {
     int total = 0;
-    int* tabg = calloc(p_nbdg, sizeof(tabg));
+    int* restrict tabg = calloc(p_nbdg, sizeof(tabg));
 
     //lancement de chaque dé
     for(int i = 0; i < (p_nbdl); ++i)

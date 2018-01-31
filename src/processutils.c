@@ -20,27 +20,33 @@
 void workfunc(int p_c2p, int id, int nbchld, int mincol, int maxcol, int step)
 {
     //TODO commentaire de création si verbose
+    if(fcntl(p_c2p, F_SETFL, O_NONBLOCK) < 0)
+    {
+	fprintf(stderr, "échec d'un fcntl");
+	return(2);
+    }
+
+    srand(time(NULL)*(id + 1));
+
     int offset = (id * step) + mincol;
     while(offset <= maxcol)//on parcours les ND affectés à ce worker
     {
-	printf("fils n°%d ND=%d", id, offset);
+	printf("    ==worker%d==>calculs pour ND=%d\n", id, offset); //TODO seulement si verbose
 	for(int trait = 1; trait <= 7; ++trait)//pour chaque rang de trait de 1 à 7
 	{
 	    for(int domaine = 1; domaine <= 7; ++domaine)//pour chaque rang de domaine de 1 à 7
 	    {
+
 		for(int comp = 0; comp <= domaine; ++comp)//pour chaque rang de compétence de 0 jusqu'au rang de domaine gouvernant
 		{
-
 		    int result = 0;
-		    for(int i = 0; i < 1000000; ++i)
+		    for(int i = 0; i < 1000000; ++i)//TODO valeur de nbdicerolls
 		    {
 			result += lancer(domaine + comp, trait, false);
 
 		    }
-		    result = result / 100;
+		    result = result / 1000000; //TODO valeur de nbdicerolls
 
-
-		    //write(p_c2p, &result, sizeof(result));
 		    char str[50];
 		    sprintf(str, "fils n°%d ND=%d result=%d\n", id, offset, result);
 		    write(p_c2p, str, sizeof(str));
